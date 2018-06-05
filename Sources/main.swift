@@ -35,6 +35,7 @@ var api = Routes()
 //第一版API
 var api1Routes = Routes(baseUri: "/api/v1")
 
+//Method
 extension String {
     static let main = "/"
     static let word = "/word"
@@ -45,25 +46,30 @@ extension String {
 api.add(uri: .word) { (req, res) in
     let start = req.param(name: "start") ?? "0"
     let end = req.param(name: "end") ?? "100"
-    var array = [String]()
+    
+    var result = [String: Any]()
+    var items = [[String: Any]]()
+    var item = [String: Any]()
     
     do {
         let sqlite = try SQLite(dbPath)
         defer {
             sqlite.close()
         }
-        try sqlite.forEachRow(statement: "select * from baseword where id <= '\(end)' and id > '\(start)'", handleRow: { (stmt, i) in
-            array.append(stmt.columnText(position: 1))
+        try sqlite.forEachRow(statement: "select * from baseword where id between '\(start)' and '\(end)'", handleRow: { (stmt, i) in
+            item["id"] = stmt.columnInt(position: 0)
+            item["name"] = stmt.columnText(position: 1)
+            items.append(item)
         })
-        let json = try array.jsonEncodedString()
         
+        result["result"] = items
+        let json = try result.jsonEncodedString()
         res.setHeader(.contentType, value: "application/json")
         res.appendBody(string: json)
     } catch {
         res.status = .internalServerError
         res.setBody(string: "请求处理出现错误：\(error)")
     }
-    
     res.completed()
 }
 
