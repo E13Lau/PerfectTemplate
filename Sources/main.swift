@@ -31,46 +31,10 @@ let version = "v1"
 
 //let db = Database(configuration: try SQLiteDatabaseConfiguration("testDBName"))
 
-var api = Routes()
 //第一版API
-var api1Routes = Routes(baseUri: "/api/v1")
 
-//Method
 extension String {
     static let main = "/"
-    static let word = "/word"
-    static let audio = "/audio"
-    static let video = "/video"
-}
-
-api.add(uri: .word) { (req, res) in
-    let start = req.param(name: "start") ?? "0"
-    let end = req.param(name: "end") ?? "100"
-    
-    var result = [String: Any]()
-    var items = [[String: Any]]()
-    var item = [String: Any]()
-    
-    do {
-        let sqlite = try SQLite(dbPath)
-        defer {
-            sqlite.close()
-        }
-        try sqlite.forEachRow(statement: "select * from baseword where id between '\(start)' and '\(end)'", handleRow: { (stmt, i) in
-            item["id"] = stmt.columnInt(position: 0)
-            item["name"] = stmt.columnText(position: 1)
-            items.append(item)
-        })
-        
-        result["result"] = items
-        let json = try result.jsonEncodedString()
-        res.setHeader(.contentType, value: "application/json")
-        res.appendBody(string: json)
-    } catch {
-        res.status = .internalServerError
-        res.setBody(string: "请求处理出现错误：\(error)")
-    }
-    res.completed()
 }
 
 //DJ音标  ["type": "audio" / "video", "name": "e"]
@@ -114,8 +78,8 @@ serverRoutes.add(method: .get, uri: "/") { (req, res) in
 }
 serverRoutes.add(uri: "/**", handler: StaticFileHandler.init(documentRoot: "./webroot").handleRequest)
 
-api1Routes.add(api)
-serverRoutes.add(api1Routes)
+serverRoutes.add(WordApi().routes)
+serverRoutes.add(PriceHistoryApi().routes)
 //serverRoutes.add(api2Routes)
 //serverRoutes.add(webRoutes)
 
