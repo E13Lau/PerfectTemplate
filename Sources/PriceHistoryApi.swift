@@ -14,7 +14,7 @@ struct PriceHistoryApi {
     init() {
         routes.add(uri: "keyword") { (req, res) in
             do {
-                let json = try ["version": 1, "keyword": "abc"].jsonEncodedString()
+                let json = try ["version": 1, "keyword": "淘♂寳♀"].jsonEncodedString()
                 res.appendBody(string: json)
                 res.setHeader(.contentType, value: "application/json")
             } catch {
